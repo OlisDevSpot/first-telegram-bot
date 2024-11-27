@@ -8,10 +8,13 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const { TELEGRAM_TOKEN, NGROK_SERVER_URL } = process.env;
+const { TELEGRAM_TOKEN } = process.env;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
 const URI = `/webhook/${TELEGRAM_TOKEN}`;
-const webhookURL = `${NGROK_SERVER_URL}${URI}`;
+const webhookURL =
+  process.env.NODE_ENV === "development"
+    ? `${process.env.NGROK_SERVER_URL}${URI}`
+    : `${process.env.RENDER_SERVER_URL}${URI}`;
 
 const init = async () => {
   const response = await axios.get(
