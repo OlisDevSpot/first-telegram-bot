@@ -8,13 +8,31 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const TELEGRAM_TOKEN = process.env.API_KEY;
+const { TELEGRAM_TOKEN, NGROK_SERVER_URL } = process.env;
+const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
+const URI = `/webhook/${TELEGRAM_TOKEN}`;
+const webhookURL = `${NGROK_SERVER_URL}${URI}`;
 
-app.get("/", async (req, res) => {
-  const data = await axios
-    .get("https://jsonplaceholder.typicode.com/todos/1")
-    .then((res) => res.data);
-  res.json({ message: "Hello from server", data });
+const init = async () => {
+  const response = await axios.get(
+    `${TELEGRAM_API_URL}/setWebhook?url=${webhookURL}`
+  );
+  console.log(response.data);
+};
+
+app.post(URI, async (req, res) => {
+  console.log(req.body.message);
+  const message = req.body.message;
+
+  await axios.post(`${TELEGRAM_API_URL}/sendMessage`, {
+    chat_id: message.chat.id,
+    text: message.text,
+  });
+
+  res.sendStatus(200);
 });
 
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+app.listen(PORT, async () => {
+  console.log(`Server is running on port ${PORT}`);
+  await init();
+});
